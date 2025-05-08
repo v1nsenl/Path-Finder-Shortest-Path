@@ -1,4 +1,3 @@
-import osmnx as ox
 import networkx as nx
 import pandas as pd
 from geopy.geocoders import Nominatim
@@ -131,6 +130,4 @@ def main():
                     st.map(map_data, color='color', size='size')
             else:
                 st.pyplot(fig=figure)
-File "/mount/src/path-finder-shortest-path/main.py", line 1, in <module>
-    import osmnx as ox
 main()
