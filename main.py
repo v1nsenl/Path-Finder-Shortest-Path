@@ -1,4 +1,3 @@
-import networkx as nx
 import pandas as pd
 from geopy.geocoders import Nominatim
 import streamlit as st
