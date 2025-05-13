@@ -1,3 +1,19 @@
+import subprocess
+import sys
+
+# Function to ensure required packages are installed
+def install_packages():
+    required_packages = ["pandas", "osmnx", "networkx", "geopy", "streamlit"]
+    for package in required_packages:
+        try:
+            __import__(package)
+        except ImportError:
+            print(f"Installing missing package: {package}")
+            subprocess.run([sys.executable, "-m", "pip", "install", package], check=True)
+
+# Install dependencies before execution
+install_packages()
+
 import pandas as pd
 import osmnx as ox
 import networkx as nx
@@ -5,10 +21,8 @@ from geopy.geocoders import Nominatim
 import streamlit as st
 import os
 
-# Initialize geolocator with a user-agent
 geolocator = Nominatim(user_agent="geo_locator_app")
 
-# File path for storing node data
 DATA_FILE = "data/el_achour_nodes.csv"
 
 # Function to check if data exists
@@ -17,10 +31,7 @@ def is_data_exists():
 
 # Load existing data or create a DataFrame
 def load_data():
-    if is_data_exists():
-        return pd.read_csv(DATA_FILE, index_col=0)
-    else:
-        return pd.DataFrame(columns=["id", "lat", "lon", "name"])
+    return pd.read_csv(DATA_FILE, index_col=0) if is_data_exists() else pd.DataFrame(columns=["id", "lat", "lon", "name"])
 
 df = load_data()
 
@@ -44,8 +55,7 @@ def build_df(graph):
 
         lat, lon = data['y'], data['x']
         place_name = get_place_name(lat, lon)
-        
-        # Filter out road names, numerical names, and duplicates
+
         if not place_name.isdigit() and not place_name.startswith(('CW', 'RN', 'RU')) and place_name not in df['name'].values:
             new_entries.append([node, lat, lon, place_name])
 
@@ -73,7 +83,6 @@ def a_star_search(graph, source, target):
 def main():
     st.title("🚗 Easy Path Finder")
 
-    # Load and update graph data
     graph = get_map_data()
     if graph:
         build_df(graph)
@@ -81,7 +90,6 @@ def main():
     col1, col2 = st.columns(2, gap='large')
 
     with col1:
-        # Dropdown selections for source and destination
         source = st.selectbox("Source", options=df["name"].values)
         destination = st.selectbox("Destination", options=df["name"].values)
 
@@ -90,7 +98,6 @@ def main():
             dest_id = df[df["name"] == destination]["id"].values[0]
             shortest_path = a_star_search(graph, src_id, dest_id)
 
-            # Display the route map if found
             if shortest_path:
                 fig, ax = ox.plot_graph_route(graph, shortest_path, route_color="r", route_linewidth=3, node_size=0, figsize=(12, 12), show=False, close=False)
                 with col2:
@@ -100,7 +107,6 @@ def main():
         else:
             st.warning("Please select different source and destination.")
 
-    # Display location map
     map_data = pd.DataFrame(df, columns=["lat", "lon"])
     st.map(map_data)
 
